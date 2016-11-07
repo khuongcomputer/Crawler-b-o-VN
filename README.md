@@ -10,3 +10,4 @@ Truy cập localhost/crawler để chạy crawl tin và localhost/crawler/commen
 
 #Các báo hỗ trợ lấy tin và comments:
 - VNExpress.net
+- Kyluc.vn/tin-tuc/ky-luc-viet-nam
