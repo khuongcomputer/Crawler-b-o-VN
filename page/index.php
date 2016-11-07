@@ -5,7 +5,6 @@ $d = $q->fetch_array();
 $sql->query(update('urls',['done'=>1],'done',"`id`={$d['id']}"));
 
 $html = file_post_contents($d['url']);
-
 $urls = extract_urls($html);
 echo "Crawl <b>{$d['url']}</b><br />";
 echo "Found ".sizeof($urls)." URLs<br />";
@@ -33,6 +32,9 @@ if(strstr($d['url'],'.html')){
 			$sql->query(insert('comments',['url'=>$comment_url,'md5'=>$comment_md5],'url,md5'));
 		}
 	}
+}else if(strstr($d['url'],'http://kyluc.vn/tin-tuc/ky-luc-viet-nam')){ // get kylucvn news
+	$content = kylucvn_extract_content($html);
+	write_file(config('data.news').$d['md5'].'.txt',$content);
 }
 ?>
 <meta http-equiv="refresh" content="1">

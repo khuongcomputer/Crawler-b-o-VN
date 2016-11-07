@@ -33,15 +33,19 @@ function extract_urls($html){
 	$dom = new DOMDocument();
 	@$dom->loadHTML($html);
 	$xpath = new DOMXPath($dom);
-	$hrefs = $xpath->evaluate("/html/body//a");
+	$hrefs = $xpath->evaluate("//a");
 	
 	$urls = [];
 	for($i = 0; $i < $hrefs->length; $i++){
 		$href = $hrefs->item($i);
 		$url = $href->getAttribute('href');
 		$url = filter_var($url, FILTER_SANITIZE_URL);
+		if(strstr($url,'/tin-tuc/ky-luc-viet-nam')) $url="http://kyluc.vn".$url;
 		// validate url
-		if(!filter_var($url, FILTER_VALIDATE_URL) === false && strstr($url,'vnexpress.net') && !strstr($url,'//e.vnexpress.net')){
+		if(!filter_var($url, FILTER_VALIDATE_URL) === false 
+			&& (strstr($url,'vnexpress.net') || strstr($url,'kyluc.vn'))
+			&& !strstr($url,'//e.vnexpress.net'))
+		{
 			if(strstr($url,'.html')) $url = substr($url,0,strpos($url,'.html')+5);
 			$urls[] = $url;
 			$md5 = md5($url);
@@ -50,6 +54,8 @@ function extract_urls($html){
 	}
 	return $urls;
 }
+
+//Get VNExpress content & comments
 
 function vne_extract_content($html){
 	$dom = new DOMDocument();
@@ -90,7 +96,31 @@ function vne_extract_comments($html){
 	return $content;
 }
 
+//Get kylucvietnam content
+
+function kylucvn_extract_content($html){
+	$dom = new DOMDocument();
+	@$dom->loadHTML($html);
+	$xpath = new DOMXPath($dom);
+	$contents = $xpath->evaluate("//div[@class='article-content lazy-img-detail']");
+	$data = '';
+	for($i = 0; $i < $contents->length; $i++){
+		$content = $contents->item($i)->nodeValue;
+		$content = str_replace('<br>',"\n",$content);
+		$content = str_replace('<br/>',"\n",$content);
+		$content = str_replace('<br />',"\n",$content);
+		$content = strip_tags($content);
+		$content = str_replace("\t","",$content);
+		while(strstr($content,"\n\n")){
+			$content = str_replace("\n\n","\n",$content);
+		}
+		$data.=$content."\n";
+	}
+	return trim($data);
+}
+
 function write_file($file,$content){
+	echo "write file $file size ".strlen($content)." <br/>";
 	if($content=='') return '';
 	$f = fopen($file,'w');
 	fwrite($f,$content);
